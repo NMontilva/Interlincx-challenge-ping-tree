@@ -50,8 +50,7 @@ const exampleDecisionReject = JSON.stringify(
 const statusCodes = {
   success: 200,
   serverError: 500,
-  notFound: 404,
-  unprocessableEntity: 422
+  notFound: 404
 }
 const targetsRequestsUrls = {
   massTargetsUrl: '/api/targets',
@@ -88,9 +87,10 @@ test.serial.cb('getTargetsCheck', function (t) {
   const { massTargetsUrl } = targetsRequestsUrls
   servertest(server(), massTargetsUrl, { encoding: 'json' }, function (err, res) {
     t.falsy(err, 'no error')
+    const bodyDataTypeof = typeof res.body.data
     console.log(JSON.stringify(res.body.data))
     t.is(res.statusCode, success, 'correct statusCode')
-    t.is(typeof res.body.data, 'object', 'data is object')
+    t.is(bodyDataTypeof, 'object', 'data is object')
     t.end()
   })
 })
@@ -100,9 +100,10 @@ test.serial.cb('getTargetByIdCheck', function (t) {
   const { singleTargetUrl } = targetsRequestsUrls
   servertest(server(), singleTargetUrl, { encoding: 'json' }, function (err, res) {
     t.falsy(err, 'no error')
+    const bodyDataTypeof = typeof res.body.data
     console.log(res.body.data)
     t.is(res.statusCode, success, 'correct statusCode')
-    t.is(typeof res.body.data, 'object', 'data is object')
+    t.is(bodyDataTypeof, 'object', 'data is object')
     t.end()
   })
 })
@@ -125,8 +126,10 @@ test.serial.cb('routeTargetCheck', function (t) {
   const { routeTargetUrl } = targetsRequestsUrls
   const req = servertest(server(), routeTargetUrl, { method: 'POST', encoding: 'url' }, function (err, res) {
     t.falsy(err, 'no error')
-    console.log(res.body.toString())
+    const bodyString = res.body.toString()
+    console.log(bodyString)
     t.is(res.statusCode, success, 'correct statusCode')
+    t.is(bodyString, 'http://example.com', 'correct body url')
     t.end()
   })
   req.write(exampleDecisionUrl)
@@ -134,12 +137,14 @@ test.serial.cb('routeTargetCheck', function (t) {
 })
 
 test.serial.cb('routeTargetCheckReject', function (t) {
-  const { unprocessableEntity } = statusCodes
+  const { serverError } = statusCodes
   const { routeTargetUrl } = targetsRequestsUrls
   const req = servertest(server(), routeTargetUrl, { method: 'POST', encoding: 'json' }, function (err, res) {
     t.falsy(err, 'no error')
+    const bodyTypeof = typeof res.body
     console.log(JSON.stringify(res.body))
-    t.is(res.statusCode, unprocessableEntity, 'correct statusCode')
+    t.is(res.statusCode, serverError, 'correct statusCode')
+    t.is(bodyTypeof, 'object', 'correct body')
     t.end()
   })
   req.write(exampleDecisionReject)
